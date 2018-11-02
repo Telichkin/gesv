@@ -1,0 +1,48 @@
+{
+  "name": "gesv",
+  "version": "0.1.1",
+  "description": "Good enough schema validation",
+  "module": "./lib/gesv.js",
+  "main": "./lib/gesv.js",
+  "minified:main": "./lib/gesv.min.js",
+  "scripts": {
+    "prepublish": "npm-run-all test build",
+    "clean": "rimraf lib/",
+    "build": "npm-run-all --silent clean copy uglify size",
+    "copy": "mkdir -p ./lib && cp gesv.js ./lib/gesv.js",
+    "uglify": "uglifyjs lib/gesv.js -mc --source-map -o lib/gesv.min.js",
+    "test": "jest --coverage",
+    "size": "size-limit"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Telichkin/AstuteDict.git"
+  },
+  "keywords": [
+    "schema",
+    "validation",
+    "js"
+  ],
+  "author": "Roman Telichkin <https://github.com/Telichkin>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Telichkin/gesv/issues"
+  },
+  "homepage": "https://github.com/Telichkin/gesv#readme",
+  "devDependencies": {
+    "jest": "^23.6.0",
+    "npm-run-all": "^4.1.3",
+    "rimraf": "^2.6.2",
+    "size-limit": "^0.20.1",
+    "uglify-js": "^3.4.9"
+  },
+  "size-limit": [
+    {
+      "path": "lib/gesv.js",
+      "limit": "500 B"
+    }
+  ]
+}
