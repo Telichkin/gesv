@@ -37,7 +37,7 @@ describe('All tests', () => {
   schema(Schema.optional(Number))
     .isValidFor([0, 1, 24, 999, undefined, null])
     .isInvalidFor(['5', NaN, {}, [], true, false])
-    .test('Number');
+    .test('Optional Number');
 
   schema(Schema.optional(String))
     .isValidFor([undefined, null, '', 'String'])
@@ -47,7 +47,7 @@ describe('All tests', () => {
   schema(Schema.optional(Boolean))
     .isValidFor([true, false, null, undefined])
     .isInvalidFor([0, 1, 'true', 'false', NaN, {}, []])
-    .test('Boolean');
+    .test('Optional Boolean');
 
   schema(Schema.any())
     .isValidFor([null, undefined, true, false, NaN, 'String', 178, {}, []])

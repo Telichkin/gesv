@@ -1,79 +1,69 @@
-function Schema() { }
+var Schema = {
+  any: function () { return Schema.for(undefined) },
 
-Schema.any = function () { return Schema.for(undefined); };
+  optional: function (aSchemaDescription) { return Schema.for(aSchemaDescription, true) },
 
-Schema.optional = function (aSchemaDescription) { return Schema.for(aSchemaDescription, { optional: true }) };
-
-Schema.for = function (aSchemaDescription, { optional: aBoolean = false } = {}) {
-  if (aSchemaDescription === Number) { return NumberSchema.optional(aBoolean) }
-  if (aSchemaDescription === String) { return StringSchema.optional(aBoolean) }
-  if (aSchemaDescription === Boolean) { return BooleanSchema.optional(aBoolean) }
-  if (aSchemaDescription === undefined) { return AnySchema.optional(aBoolean) }
-  if (Array.isArray(aSchemaDescription)) { return ArraySchema.optional(aBoolean).description(aSchemaDescription) }
-  if (aSchemaDescription instanceof BaseSchema) { return aSchemaDescription }
-  return ObjectSchema.optional(aBoolean).description(aSchemaDescription);
-};
-
-class BaseSchema {
-  static optional(aBoolean = false) { return new this(aBoolean) }
-
-  constructor(optional) { this._optional = optional }
-
-  isValidFor(anObject) {
-    if (this._optional && (anObject === undefined || anObject === null)) { return true }
-    return anObject !== undefined && anObject !== null && this.additionalIsValidFor(anObject);
-  }
-
-  additionalIsValidFor(anObject) { return false }
-
-  description(aSchemaDescription) { return this }
-}
-
-class NumberSchema extends BaseSchema {
-  additionalIsValidFor(anObject) {
-    return anObject.constructor === Number && !Number.isNaN(anObject);
+  for: function (aSchemaDescription, optional) {
+    if (aSchemaDescription === Number) { return NumberSchema(optional) }
+    if (aSchemaDescription === String) { return StringSchema(optional) }
+    if (aSchemaDescription === Boolean) { return BooleanSchema(optional) }
+    if (aSchemaDescription === undefined) { return AnySchema(optional) }
+    if (Array.isArray(aSchemaDescription)) { return ArraySchema(optional, aSchemaDescription) }
+    if (aSchemaDescription.type === 'BaseSchema') { return aSchemaDescription }
+    return ObjectSchema(optional, aSchemaDescription)
   }
 }
 
-class StringSchema extends BaseSchema {
-  additionalIsValidFor(anObject) {
-    return anObject.constructor === String;
-  }
+function NumberSchema(optional) {
+  return BaseSchema(optional, function (anObject) {
+    return anObject.constructor === Number && !Number.isNaN(anObject)
+  })
 }
 
-class BooleanSchema extends BaseSchema {
-  additionalIsValidFor(anObject) {
-    return anObject.constructor === Boolean;
-  }
+function StringSchema(optional) {
+  return BaseSchema(optional, function (anObject) {
+    return anObject.constructor === String
+  })
 }
 
-class AnySchema extends BaseSchema {
-  constructor() { super(true); }
-  additionalIsValidFor() { return true; }
+function BooleanSchema(optional) {
+  return BaseSchema(optional, function (anObject) {
+    return anObject.constructor === Boolean
+  })
 }
 
-class ArraySchema extends BaseSchema {
-  description(aSchemaDescription) {
-    this._nestedSchema = Schema.for(aSchemaDescription[0]);
-    return this;
-  }
-
-  additionalIsValidFor(anObject) {
-    return Array.isArray(anObject) && anObject.every(el => this._nestedSchema.isValidFor(el));
-  }
+function AnySchema() {
+  return BaseSchema(true, function () { return true })
 }
 
-class ObjectSchema extends BaseSchema {
-  description(aSchemaDescription) {
-    this._nestedSchemas = {};
-    Object.entries(aSchemaDescription).forEach(([key, singleDescription]) => {
-      this._nestedSchemas[key] = Schema.for(singleDescription);
+function ArraySchema(optional, aSchemaDescription) {
+  var nestedSchema = Schema.for(aSchemaDescription[0])
+
+  return BaseSchema(optional, function (anObject) {
+    return Array.isArray(anObject) && anObject.every(function (el) { return nestedSchema.isValidFor(el) });
+  })
+}
+
+function ObjectSchema(optional, aSchemaDescription) {
+  var nestedSchemas = {}
+  Object.entries(aSchemaDescription).forEach(function (keyValue) {
+    nestedSchemas[keyValue[0]] = Schema.for(keyValue[1]);
+  })
+
+  return BaseSchema(optional, function (anObject) {
+    return Object.entries(nestedSchemas).every(function (keyValue) {
+      return keyValue[1].isValidFor(anObject[keyValue[0]])
     });
-    return this;
-  }
+  })
+}
 
-  additionalIsValidFor(anObject) {
-    return Object.entries(this._nestedSchemas).every(([key, schema]) => schema.isValidFor(anObject[key]));
+function BaseSchema(optional, validation) {
+  return {
+    type: 'BaseSchema',
+    isValidFor: function (anObject) {
+      if (Boolean(optional) && (anObject === undefined || anObject === null)) { return true }
+      return anObject !== undefined && anObject !== null && validation(anObject)
+    }
   }
 }
 
