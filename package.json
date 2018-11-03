@@ -1,6 +1,6 @@
 {
   "name": "gesv",
-  "version": "0.1.1",
+  "version": "0.1.0",
   "description": "Good enough schema validation",
   "module": "./lib/gesv.js",
   "main": "./lib/gesv.js",
