@@ -100,4 +100,21 @@ describe('All tests', () => {
     }
   }])
     .test('Nested Object')
+
+  schema({
+    extension: anObject => anObject.startsWith && anObject.startsWith('test')
+  })
+    .isValidFor([{extension: 'test_foo'}, {extension: 'test-bar'}, {extension: 'test'}])
+    .isInvalidFor([
+      {extension: 'any-other-string'}, {extension: 9}, {extension: 1}, {extension: 0},
+      {extension: undefined}, {extension: null}, {extension: true}, {extension: false}])
+    .test('Custom validator')
+
+  schema({
+    age: Number,
+    gender: anObject => ['male', 'female'].includes(anObject)
+  })
+    .isValidFor([{age: 43, gender: 'male'}, {age: 18, gender: 'female'}])
+    .isInvalidFor([{age: 10, gender: 'foo'}])
+    .test('Gender example')
 });
